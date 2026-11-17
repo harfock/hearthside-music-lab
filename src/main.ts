@@ -1,12 +1,20 @@
 import "./style.css";
 import { MusicEngine } from "./audio/engine";
-import { firstComposition, secondComposition } from "./music/score";
+import { firstComposition, secondComposition, thirdComposition, fourthComposition } from "./music/score";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) throw new Error("Application root not found");
 
 const engine = new MusicEngine();
-let selectedComposition = firstComposition;
+const compositions = [firstComposition, secondComposition, thirdComposition, fourthComposition];
+const compositionDetails = [
+  { mood: "Ambient · Dreamlike · 72 BPM", label: "EVOLVING AMBIENT ARRANGEMENT", instruments: [["Soft plucked strings", "SPARSE ORIGINAL MOTIF"], ["Glass harmonics", "OCCASIONAL DISTANT LIGHT"], ["Warm evolving pads", "LONG, BREATHING CHORDS"]], note: "A slow ambient composition with a recurring motif, a gradual opening of texture, and a final D-major chord fading into the room." },
+  { mood: "Cinematic · Soaring · 96 BPM", label: "CINEMATIC THEMATIC ARRANGEMENT", instruments: [["Harp-like arpeggios", "GENTLE FORWARD MOTION"], ["Flute-like lead", "ORIGINAL SINGABLE THEME"], ["Warm string ensemble", "GRADUAL ORCHESTRAL BUILD"]], note: "An original cinematic theme with harp-like arpeggios, a flute-like lead and layered strings." },
+  { mood: "Singing bowl · Still · 42 BPM", label: "SLOW SINGING-BOWL SOUNDscape", instruments: [["Medium singing bowl", "LONG, SOFT RESONANCE"], ["Warm harmonic bed", "SLOW CHORD CHANGES"], ["Low gentle drone", "QUIET FOUNDATION"]], note: "A restrained reading soundscape: one softly struck medium-register bowl tone every few bars, long resonance, and almost motionless harmony." },
+  { mood: "Singing bowl · Spacious · 40 BPM", label: "LAYERED BOWL AND STRING SOUNDscape", instruments: [["Medium singing bowl", "GENTLE, SPACED STRIKES"], ["Soft string cloud", "SLOW SUSTAINED CHORDS"], ["Low gentle drone", "NO RHYTHMIC PULSE"]], note: "A second reading soundscape with more frequent but still widely spaced bowl tones, warm strings, a narrow register and no dramatic build." }
+];
+let selectedIndex = 0;
+let selectedComposition = compositions[selectedIndex];
 
 app.innerHTML = `
   <main class="shell">
@@ -21,22 +29,19 @@ app.innerHTML = `
     <section class="intro">
       <p class="eyebrow">COMPOSITION WORKSPACE / 004</p>
       <h1>Music for<br><em>imagined worlds.</em></h1>
-      <p class="intro-copy">Two original sound worlds, composed note by note and synthesised entirely in your browser.</p>
+      <p class="intro-copy">Four original sound worlds, including two new slow reading soundscapes, synthesised entirely in your browser.</p>
     </section>
 
     <section class="library">
       <p class="eyebrow">THE COMPOSITION COLLECTION</p>
       <div class="composition-list">
-        <button class="composition-option selected" id="select-one" type="button" aria-pressed="true">
-          <span class="option-number">01</span>
-          <span class="option-copy"><strong>A Quiet Place Between Stars</strong><small>Ambient · Dreamlike · 72 BPM</small></span>
-          <span class="option-state">SELECTED</span>
-        </button>
-        <button class="composition-option" id="select-two" type="button" aria-pressed="false">
-          <span class="option-number">02</span>
-          <span class="option-copy"><strong>Where the Sky Opens</strong><small>Cinematic · Soaring · 96 BPM</small></span>
-          <span class="option-state">LISTEN</span>
-        </button>
+        ${compositions.map((composition, index) => `
+          <button class="composition-option ${index === 0 ? "selected" : ""}" data-composition="${index}" type="button" aria-pressed="${index === 0}">
+            <span class="option-number">0${index + 1}</span>
+            <span class="option-copy"><strong>${composition.title}</strong><small>${compositionDetails[index].mood}</small></span>
+            <span class="option-state">${index === 0 ? "SELECTED" : "LISTEN"}</span>
+          </button>
+        `).join("")}
       </div>
     </section>
 
@@ -94,27 +99,30 @@ function selectTrack(which: 1 | 2) {
   engine.stop();
   playButton.disabled = false;
   stopButton.disabled = true;
-  selectedComposition = which === 1 ? firstComposition : secondComposition;
-  selectOne.classList.toggle("selected", which === 1);
-  selectTwo.classList.toggle("selected", which === 2);
-  selectOne.setAttribute("aria-pressed", String(which === 1));
-  selectTwo.setAttribute("aria-pressed", String(which === 2));
+  selectedIndex = index;
+  selectedComposition = compositions[index];
+  compositionOptions.forEach((option, optionIndex) => {
+    const selected = optionIndex === index;
+    option.classList.toggle("selected", selected);
+    option.setAttribute("aria-pressed", String(selected));
+    option.querySelector<HTMLElement>(".option-state")!.textContent = selected ? "SELECTED" : "LISTEN";
+  });
+  const details = compositionDetails[index];
   title.textContent = selectedComposition.title;
   meta.textContent = selectedComposition.subtitle;
-  number.textContent = `NO. 0${which}`;
+  number.textContent = `NO. 0${index + 1}`;
   length.textContent = `${selectedComposition.bars} BARS / ${selectedComposition.bpm} BPM · 4/4`;
-  arrangement.textContent = which === 1 ? "EVOLVING AMBIENT ARRANGEMENT" : "CINEMATIC THEMATIC ARRANGEMENT";
-  instruments.innerHTML = which === 1
-    ? `<div><span class="track-dot piano"></span><span>Soft plucked strings</span><small>SPARSE ORIGINAL MOTIF</small></div><div><span class="track-dot bell"></span><span>Glass harmonics</span><small>OCCASIONAL DISTANT LIGHT</small></div><div><span class="track-dot pad"></span><span>Warm evolving pads</span><small>LONG, BREATHING CHORDS</small></div>`
-    : `<div><span class="track-dot piano"></span><span>Harp-like arpeggios</span><small>GENTLE FORWARD MOTION</small></div><div><span class="track-dot bell"></span><span>Flute-like lead</span><small>ORIGINAL SINGABLE THEME</small></div><div><span class="track-dot pad"></span><span>Warm string ensemble</span><small>GRADUAL ORCHESTRAL BUILD</small></div>`;
-  listeningNote.textContent = which === 1
-    ? "A slow 48-bar ambient composition with six evolving sections. Listen for the recurring motif, the gradual opening of the texture, and the final D-major chord fading into the room."
-    : "A 48-bar cinematic theme that begins intimately, lets its melody rise into a broad central statement, then gently returns home. Harp-like arpeggios, a flute-like lead and layered strings are synthesised locally.";
+  arrangement.textContent = details.label;
+  instruments.innerHTML = details.instruments.map(([name, caption], i) =>
+    `<div><span class="track-dot ${["piano", "bell", "pad"][i]}"></span><span>${name}</span><small>${caption}</small></div>`
+  ).join("");
+  listeningNote.textContent = details.note;
   status.textContent = "Ready when you are";
 }
 
-selectOne.addEventListener("click", () => selectTrack(1));
-selectTwo.addEventListener("click", () => selectTrack(2));
+compositionOptions.forEach((option) => {
+  option.addEventListener("click", () => selectTrack(Number(option.dataset.composition)));
+});
 
 playButton.addEventListener("click", async () => {
   playButton.disabled = true;
