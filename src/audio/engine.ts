@@ -160,6 +160,10 @@ export class MusicEngine {
       this.scheduleBass(frequency, event.velocity, start, duration, context, destination);
     } else if (event.voice === "bell") {
       this.scheduleBell(frequency, event.velocity, start, duration, context, destination);
+    } else if (event.voice === "strings") {
+      this.scheduleStrings(frequency, event.velocity, start, duration, context, destination);
+    } else if (event.voice === "flute") {
+      this.scheduleFlute(frequency, event.velocity, start, duration, context, destination);
     } else {
       this.schedulePad(frequency, event.velocity, start, duration, context, destination);
     }
@@ -282,6 +286,90 @@ export class MusicEngine {
       oscillator.stop(start + duration + 2.2);
       this.scheduled.push(oscillator);
     }
+  }
+
+
+  private scheduleStrings(
+    frequency: number,
+    velocity: number,
+    start: number,
+    duration: number,
+    context: AudioContext,
+    destination: AudioNode
+  ) {
+    const output = this.track(context.createGain());
+    const filter = this.track(context.createBiquadFilter());
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(1150, start);
+    filter.frequency.linearRampToValueAtTime(2600, start + 2.2);
+    filter.Q.value = 0.28;
+    output.gain.setValueAtTime(0.0001, start);
+    output.gain.linearRampToValueAtTime(velocity, start + 1.05);
+    output.gain.setTargetAtTime(velocity * 0.82, start + 1.05, 1.4);
+    output.gain.setTargetAtTime(0.0001, start + Math.max(1.2, duration - 0.5), 0.9);
+    filter.connect(output);
+    output.connect(destination);
+
+    for (const [type, ratio, level, detune] of [
+      ["sawtooth", 1, 0.16, -5],
+      ["triangle", 1.002, 0.58, 4],
+      ["sine", 2, 0.08, 0]
+    ] as const) {
+      const oscillator = this.track(context.createOscillator());
+      const partialGain = this.track(context.createGain());
+      oscillator.type = type;
+      oscillator.frequency.value = frequency * ratio;
+      oscillator.detune.value = detune;
+      partialGain.gain.value = level;
+      oscillator.connect(partialGain);
+      partialGain.connect(filter);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 2.5);
+      this.scheduled.push(oscillator);
+    }
+  }
+
+  private scheduleFlute(
+    frequency: number,
+    velocity: number,
+    start: number,
+    duration: number,
+    context: AudioContext,
+    destination: AudioNode
+  ) {
+    const output = this.track(context.createGain());
+    const tone = this.track(context.createBiquadFilter());
+    tone.type = "lowpass";
+    tone.frequency.value = Math.min(5200, frequency * 7);
+    tone.Q.value = 0.22;
+    output.gain.setValueAtTime(0.0001, start);
+    output.gain.linearRampToValueAtTime(velocity, start + 0.11);
+    output.gain.setTargetAtTime(velocity * 0.82, start + 0.16, 0.7);
+    output.gain.setTargetAtTime(0.0001, start + Math.max(0.3, duration - 0.18), 0.28);
+    tone.connect(output);
+    output.connect(destination);
+
+    const fundamental = this.track(context.createOscillator());
+    const fundamentalGain = this.track(context.createGain());
+    fundamental.type = "sine";
+    fundamental.frequency.value = frequency;
+    fundamentalGain.gain.value = 0.92;
+    fundamental.connect(fundamentalGain);
+    fundamentalGain.connect(tone);
+    fundamental.start(start);
+    fundamental.stop(start + duration + 1.1);
+    this.scheduled.push(fundamental);
+
+    const breath = this.track(context.createOscillator());
+    const breathGain = this.track(context.createGain());
+    breath.type = "triangle";
+    breath.frequency.value = frequency * 2;
+    breathGain.gain.value = 0.045;
+    breath.connect(breathGain);
+    breathGain.connect(tone);
+    breath.start(start);
+    breath.stop(start + duration + 1.1);
+    this.scheduled.push(breath);
   }
 
   private scheduleBell(
