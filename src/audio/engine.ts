@@ -164,6 +164,8 @@ export class MusicEngine {
       this.scheduleStrings(frequency, event.velocity, start, duration, context, destination);
     } else if (event.voice === "flute") {
       this.scheduleFlute(frequency, event.velocity, start, duration, context, destination);
+    } else if (event.voice === "bowl") {
+      this.scheduleBowl(frequency, event.velocity, start, duration, context, destination);
     } else {
       this.schedulePad(frequency, event.velocity, start, duration, context, destination);
     }
@@ -370,6 +372,50 @@ export class MusicEngine {
     breath.start(start);
     breath.stop(start + duration + 1.1);
     this.scheduled.push(breath);
+  }
+
+
+  private scheduleBowl(
+    frequency: number,
+    velocity: number,
+    start: number,
+    duration: number,
+    context: AudioContext,
+    destination: AudioNode
+  ) {
+    const output = this.track(context.createGain());
+    const tone = this.track(context.createBiquadFilter());
+    tone.type = "lowpass";
+    tone.frequency.value = Math.min(2300, frequency * 5.2);
+    tone.Q.value = 0.18;
+
+    output.gain.setValueAtTime(0.0001, start);
+    output.gain.linearRampToValueAtTime(velocity, start + 0.72);
+    output.gain.setTargetAtTime(velocity * 0.72, start + 0.72, 2.8);
+    output.gain.setTargetAtTime(0.0001, start + Math.max(2.5, duration - 0.4), 3.8);
+    tone.connect(output);
+    output.connect(destination);
+
+    const partials = [
+      [1, 1, 0],
+      [2.71, 0.19, 1],
+      [4.16, 0.055, -1],
+      [5.43, 0.018, 0]
+    ] as const;
+
+    partials.forEach(([ratio, level, detune]) => {
+      const oscillator = this.track(context.createOscillator());
+      const partialGain = this.track(context.createGain());
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency * ratio;
+      oscillator.detune.value = detune;
+      partialGain.gain.value = level;
+      oscillator.connect(partialGain);
+      partialGain.connect(tone);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 10);
+      this.scheduled.push(oscillator);
+    });
   }
 
   private scheduleBell(
