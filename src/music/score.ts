@@ -4,7 +4,7 @@ export type NoteEvent = {
   midi: number;
   velocity: number;
   timingOffset?: number;
-  voice: "pluck" | "pad" | "bass" | "bell";
+  voice: "pluck" | "pad" | "bass" | "bell" | "strings" | "flute";
 };
 
 export type Composition = {
