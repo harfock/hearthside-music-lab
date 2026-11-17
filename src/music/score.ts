@@ -273,6 +273,34 @@ export const secondComposition: Composition = {
   events: skyEvents
 };
 
+function softenForReading(score: Composition, bpm: number, melodicVoices: readonly string[]) {
+  score.bpm = bpm;
+  score.events = score.events
+    .filter((event) => event.voice !== "bell")
+    .map((event) => {
+      const originalVoice = event.voice;
+      const isMelodic = melodicVoices.includes(originalVoice);
+      const loweredMidi = event.midi > 69 ? event.midi - 12 : event.midi;
+      const voice = originalVoice === "pluck"
+        ? "pad"
+        : originalVoice === "flute"
+          ? "strings"
+          : originalVoice;
+      return {
+        ...event,
+        midi: isMelodic ? Math.max(55, Math.min(67, loweredMidi)) : event.midi,
+        duration: isMelodic ? Math.max(3.8, event.duration * 1.45) : event.duration,
+        velocity: isMelodic ? event.velocity * 0.62 : event.velocity
+      };
+    });
+}
+
+// Preserve both original themes, but soften their register, attacks and pacing
+// so they work as quiet reading companions rather than foreground pieces.
+softenForReading(firstComposition, 54, ["pluck"]);
+softenForReading(secondComposition, 54, ["pluck", "flute"]);
+
+
 
 // Reading collection: restrained middle-register writing, very slow harmonic
 // rhythm, and long resonant bowl tones. No bright lead or high-register accents.
