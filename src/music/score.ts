@@ -3,6 +3,8 @@ export type NoteEvent = {
   duration: number;
   midi: number;
   velocity: number;
+  // Fixed expressive offset in beats; positive values sit slightly behind the pulse.
+  timingOffset?: number;
   voice: "piano" | "bell" | "pad";
 };
 
@@ -23,8 +25,8 @@ const piano: NoteEvent[] = [
   { beat: 0, duration: 3.5, midi: 62, velocity: 0.22, voice: "piano" },
   { beat: 0, duration: 3.5, midi: 64, velocity: 0.24, voice: "piano" },
   { beat: 0, duration: 1.5, midi: 76, velocity: 0.34, voice: "piano" },
-  { beat: 1.5, duration: 0.75, midi: 79, velocity: 0.25, voice: "piano" },
-  { beat: 2.5, duration: 1.1, midi: 76, velocity: 0.28, voice: "piano" },
+  { beat: 1.5, duration: 0.75, midi: 79, velocity: 0.25, timingOffset: 0.035, voice: "piano" },
+  { beat: 2.5, duration: 1.1, midi: 76, velocity: 0.28, timingOffset: -0.018, voice: "piano" },
 
   // Bar 2 — Am7, melody answers and settles.
   { beat: 4, duration: 3.5, midi: 45, velocity: 0.34, voice: "piano" },
@@ -32,8 +34,8 @@ const piano: NoteEvent[] = [
   { beat: 4, duration: 3.5, midi: 55, velocity: 0.22, voice: "piano" },
   { beat: 4, duration: 3.5, midi: 59, velocity: 0.22, voice: "piano" },
   { beat: 4, duration: 1.4, midi: 81, velocity: 0.29, voice: "piano" },
-  { beat: 5.5, duration: 0.8, midi: 79, velocity: 0.24, voice: "piano" },
-  { beat: 6.5, duration: 1.0, midi: 76, velocity: 0.26, voice: "piano" },
+  { beat: 5.5, duration: 0.8, midi: 79, velocity: 0.24, timingOffset: 0.028, voice: "piano" },
+  { beat: 6.5, duration: 1.0, midi: 76, velocity: 0.26, timingOffset: -0.015, voice: "piano" },
 
   // Bar 3 — Fmaj7, gentle lift.
   { beat: 8, duration: 3.5, midi: 41, velocity: 0.34, voice: "piano" },
@@ -42,8 +44,8 @@ const piano: NoteEvent[] = [
   { beat: 8, duration: 3.5, midi: 60, velocity: 0.22, voice: "piano" },
   { beat: 8, duration: 3.5, midi: 64, velocity: 0.2, voice: "piano" },
   { beat: 8, duration: 1.4, midi: 77, velocity: 0.28, voice: "piano" },
-  { beat: 9.5, duration: 0.8, midi: 76, velocity: 0.23, voice: "piano" },
-  { beat: 10.5, duration: 1.0, midi: 72, velocity: 0.25, voice: "piano" },
+  { beat: 9.5, duration: 0.8, midi: 76, velocity: 0.23, timingOffset: 0.032, voice: "piano" },
+  { beat: 10.5, duration: 1.0, midi: 72, velocity: 0.25, timingOffset: -0.018, voice: "piano" },
 
   // Bar 4 — G6 resolving to Cmaj9.
   { beat: 12, duration: 2.0, midi: 43, velocity: 0.32, voice: "piano" },
@@ -51,8 +53,8 @@ const piano: NoteEvent[] = [
   { beat: 12, duration: 2.0, midi: 55, velocity: 0.2, voice: "piano" },
   { beat: 12, duration: 2.0, midi: 59, velocity: 0.2, voice: "piano" },
   { beat: 12, duration: 1.0, midi: 74, velocity: 0.27, voice: "piano" },
-  { beat: 13.25, duration: 0.7, midi: 71, velocity: 0.22, voice: "piano" },
-  { beat: 14, duration: 1.7, midi: 72, velocity: 0.3, voice: "piano" },
+  { beat: 13.25, duration: 0.7, midi: 71, velocity: 0.22, timingOffset: 0.025, voice: "piano" },
+  { beat: 14, duration: 1.7, midi: 72, velocity: 0.3, timingOffset: -0.012, voice: "piano" },
   { beat: 14, duration: 1.7, midi: 48, velocity: 0.28, voice: "piano" },
   { beat: 14, duration: 1.7, midi: 55, velocity: 0.18, voice: "piano" },
   { beat: 14, duration: 1.7, midi: 59, velocity: 0.18, voice: "piano" },
