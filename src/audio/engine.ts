@@ -8,7 +8,6 @@ export class MusicEngine {
   private scheduled: AudioScheduledSourceNode[] = [];
   private graphNodes: AudioNode[] = [];
   private stopTimer: number | null = null;
-  private cleanupTimer: number | null = null;
   private playing = false;
 
   get isPlaying() {
@@ -70,6 +69,7 @@ export class MusicEngine {
     this.playing = true;
     this.stopTimer = window.setTimeout(() => {
       this.playing = false;
+      this.stopTimer = null;
       this.scheduled = [];
       this.master = null;
       onEnded();
@@ -79,9 +79,7 @@ export class MusicEngine {
 
   stop() {
     if (this.stopTimer !== null) window.clearTimeout(this.stopTimer);
-    if (this.cleanupTimer !== null) window.clearTimeout(this.cleanupTimer);
     this.stopTimer = null;
-    this.cleanupTimer = null;
 
     const now = this.context?.currentTime ?? 0;
     for (const source of this.scheduled) {
@@ -112,7 +110,7 @@ export class MusicEngine {
     this.graphNodes = [];
     if (!nodes.length) return;
 
-    this.cleanupTimer = window.setTimeout(() => {
+    window.setTimeout(() => {
       for (const node of nodes) {
         try {
           node.disconnect();
@@ -120,7 +118,6 @@ export class MusicEngine {
           // Nodes may already be disconnected.
         }
       }
-      this.cleanupTimer = null;
     }, delay);
   }
 
