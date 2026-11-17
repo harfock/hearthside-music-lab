@@ -8,12 +8,11 @@ if (!app) throw new Error("Application root not found");
 const engine = new MusicEngine();
 const compositions = [firstComposition, secondComposition, thirdComposition, fourthComposition];
 const compositionDetails = [
-  { mood: "Ambient · Dreamlike · 72 BPM", label: "EVOLVING AMBIENT ARRANGEMENT", instruments: [["Soft plucked strings", "SPARSE ORIGINAL MOTIF"], ["Glass harmonics", "OCCASIONAL DISTANT LIGHT"], ["Warm evolving pads", "LONG, BREATHING CHORDS"]], note: "A slow ambient composition with a recurring motif, a gradual opening of texture, and a final D-major chord fading into the room." },
-  { mood: "Cinematic · Soaring · 96 BPM", label: "CINEMATIC THEMATIC ARRANGEMENT", instruments: [["Harp-like arpeggios", "GENTLE FORWARD MOTION"], ["Flute-like lead", "ORIGINAL SINGABLE THEME"], ["Warm string ensemble", "GRADUAL ORCHESTRAL BUILD"]], note: "An original cinematic theme with harp-like arpeggios, a flute-like lead and layered strings." },
+  { mood: "Ambient · Dreamlike · 54 BPM", label: "EVOLVING AMBIENT ARRANGEMENT", instruments: [["Soft plucked strings", "SPARSE ORIGINAL MOTIF"], ["Glass harmonics", "OCCASIONAL DISTANT LIGHT"], ["Warm evolving pads", "LONG, BREATHING CHORDS"]], note: "A slow ambient composition with a recurring motif, a gradual opening of texture, and a final D-major chord fading into the room." },
+  { mood: "Cinematic · Gentle · 54 BPM", label: "CINEMATIC THEMATIC ARRANGEMENT", instruments: [["Harp-like arpeggios", "GENTLE FORWARD MOTION"], ["Flute-like lead", "ORIGINAL SINGABLE THEME"], ["Warm string ensemble", "GRADUAL ORCHESTRAL BUILD"]], note: "An original cinematic theme with harp-like arpeggios, a flute-like lead and layered strings." },
   { mood: "Singing bowl · Still · 42 BPM", label: "SLOW SINGING-BOWL SOUNDscape", instruments: [["Medium singing bowl", "LONG, SOFT RESONANCE"], ["Warm harmonic bed", "SLOW CHORD CHANGES"], ["Low gentle drone", "QUIET FOUNDATION"]], note: "A restrained reading soundscape: one softly struck medium-register bowl tone every few bars, long resonance, and almost motionless harmony." },
   { mood: "Singing bowl · Spacious · 40 BPM", label: "LAYERED BOWL AND STRING SOUNDscape", instruments: [["Medium singing bowl", "GENTLE, SPACED STRIKES"], ["Soft string cloud", "SLOW SUSTAINED CHORDS"], ["Low gentle drone", "NO RHYTHMIC PULSE"]], note: "A second reading soundscape with more frequent but still widely spaced bowl tones, warm strings, a narrow register and no dramatic build." }
 ];
-let selectedIndex = 0;
 let selectedComposition = compositions[selectedIndex];
 
 app.innerHTML = `
@@ -98,7 +97,6 @@ function selectTrack(index: number) {
   engine.stop();
   playButton.disabled = false;
   stopButton.disabled = true;
-  selectedIndex = index;
   selectedComposition = compositions[index];
   compositionOptions.forEach((option, optionIndex) => {
     const selected = optionIndex === index;
