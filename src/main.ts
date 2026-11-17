@@ -92,10 +92,9 @@ const length = document.querySelector<HTMLSpanElement>("#composition-length")!;
 const arrangement = document.querySelector<HTMLSpanElement>("#arrangement-label")!;
 const instruments = document.querySelector<HTMLDivElement>("#instrument-list")!;
 const listeningNote = document.querySelector<HTMLParagraphElement>("#listening-note")!;
-const selectOne = document.querySelector<HTMLButtonElement>("#select-one")!;
-const selectTwo = document.querySelector<HTMLButtonElement>("#select-two")!;
+const compositionOptions = [...document.querySelectorAll<HTMLButtonElement>("[data-composition]")];
 
-function selectTrack(which: 1 | 2) {
+function selectTrack(index: number) {
   engine.stop();
   playButton.disabled = false;
   stopButton.disabled = true;
