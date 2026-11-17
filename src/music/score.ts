@@ -4,7 +4,7 @@ export type NoteEvent = {
   midi: number;
   velocity: number;
   timingOffset?: number;
-  voice: "pluck" | "pad" | "bass" | "bell" | "strings" | "flute";
+  voice: "pluck" | "pad" | "bass" | "bell" | "strings" | "flute" | "bowl";
 };
 
 export type Composition = {
@@ -271,4 +271,141 @@ export const secondComposition: Composition = {
   beatsPerBar: 4,
   bars: skyBars,
   events: skyEvents
+};
+
+
+// Reading collection: restrained middle-register writing, very slow harmonic
+// rhythm, and long resonant bowl tones. No bright lead or high-register accents.
+type ReadingChord = {
+  tones: readonly [number, number, number];
+  bowl: number;
+  bass: number;
+};
+
+const stillwaterHarmony: readonly ReadingChord[] = [
+  { tones: [55, 59, 62], bowl: 62, bass: 43 },
+  { tones: [52, 55, 59], bowl: 59, bass: 40 },
+  { tones: [48, 55, 60], bowl: 60, bass: 36 },
+  { tones: [50, 57, 62], bowl: 62, bass: 38 },
+  { tones: [55, 59, 62], bowl: 62, bass: 43 },
+  { tones: [47, 54, 59], bowl: 59, bass: 35 },
+  { tones: [48, 55, 59], bowl: 59, bass: 36 },
+  { tones: [50, 57, 62], bowl: 62, bass: 38 }
+];
+
+const stillwaterEvents: NoteEvent[] = [];
+for (let bar = 0; bar < 32; bar += 1) {
+  const chordIndex = Math.floor(bar / 4);
+  const chord = stillwaterHarmony[chordIndex];
+  const start = bar * 4;
+
+  if (bar % 4 === 0) {
+    chord.tones.forEach((midi, index) => {
+      stillwaterEvents.push({
+        beat: start,
+        duration: 16.4,
+        midi,
+        velocity: [0.018, 0.015, 0.012][index],
+        voice: "pad"
+      });
+    });
+    stillwaterEvents.push({
+      beat: start + 0.15,
+      duration: 15.5,
+      midi: chord.bowl,
+      velocity: 0.032,
+      voice: "bowl"
+    });
+  }
+
+  if (bar % 8 === 0) {
+    stillwaterEvents.push({
+      beat: start,
+      duration: 15.8,
+      midi: chord.bass,
+      velocity: 0.038,
+      voice: "bass"
+    });
+  }
+}
+
+stillwaterEvents.push(
+  { beat: 128, duration: 20, midi: 55, velocity: 0.016, voice: "pad" },
+  { beat: 128, duration: 19, midi: 59, velocity: 0.014, voice: "pad" },
+  { beat: 128, duration: 18, midi: 62, velocity: 0.012, voice: "pad" },
+  { beat: 128, duration: 19, midi: 62, velocity: 0.026, voice: "bowl" }
+);
+
+export const thirdComposition: Composition = {
+  title: "Stillwater Resonance",
+  subtitle: "Reading soundscape · G-centred · 4/4 · 42 BPM · Singing bowl and soft drone",
+  bpm: 42,
+  beatsPerBar: 4,
+  bars: 32,
+  events: stillwaterEvents
+};
+
+const quietPagesHarmony: readonly ReadingChord[] = [
+  { tones: [53, 57, 60], bowl: 60, bass: 41 },
+  { tones: [50, 53, 57], bowl: 57, bass: 38 },
+  { tones: [48, 53, 57], bowl: 57, bass: 36 },
+  { tones: [50, 55, 59], bowl: 59, bass: 38 },
+  { tones: [53, 57, 60], bowl: 60, bass: 41 },
+  { tones: [52, 55, 59], bowl: 59, bass: 40 },
+  { tones: [48, 53, 57], bowl: 57, bass: 36 },
+  { tones: [50, 53, 57], bowl: 57, bass: 38 }
+];
+
+const quietPagesEvents: NoteEvent[] = [];
+for (let bar = 0; bar < 32; bar += 1) {
+  const chord = quietPagesHarmony[Math.floor(bar / 4)];
+  const start = bar * 4;
+
+  if (bar % 4 === 0) {
+    chord.tones.forEach((midi, index) => {
+      quietPagesEvents.push({
+        beat: start,
+        duration: 16.6,
+        midi,
+        velocity: [0.014, 0.013, 0.011][index],
+        voice: "strings"
+      });
+    });
+  }
+
+  if (bar % 2 === 0) {
+    quietPagesEvents.push({
+      beat: start + 0.25,
+      duration: 8.8,
+      midi: chord.bowl,
+      velocity: 0.025,
+      voice: "bowl"
+    });
+  }
+
+  if (bar % 8 === 0) {
+    quietPagesEvents.push({
+      beat: start,
+      duration: 15.5,
+      midi: chord.bass,
+      velocity: 0.026,
+      voice: "bass"
+    });
+  }
+}
+
+quietPagesEvents.push(
+  { beat: 128, duration: 20, midi: 53, velocity: 0.012, voice: "strings" },
+  { beat: 128, duration: 20, midi: 57, velocity: 0.011, voice: "strings" },
+  { beat: 128, duration: 20, midi: 60, velocity: 0.01, voice: "strings" },
+  { beat: 128, duration: 18, midi: 60, velocity: 0.022, voice: "bowl" }
+);
+
+export const fourthComposition: Composition = {
+  title: "The Quiet Between Pages",
+  subtitle: "Reading soundscape · F-centred · 4/4 · 40 BPM · Layered bowl and warm strings",
+  bpm: 40,
+  beatsPerBar: 4,
+  bars: 32,
+  events: quietPagesEvents
 };
