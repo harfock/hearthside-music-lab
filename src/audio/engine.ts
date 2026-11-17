@@ -303,7 +303,7 @@ export class MusicEngine {
     const filter = this.track(context.createBiquadFilter());
     filter.type = "lowpass";
     filter.frequency.setValueAtTime(1150, start);
-    filter.frequency.linearRampToValueAtTime(2600, start + 2.2);
+    filter.frequency.linearRampToValueAtTime(1850, start + 2.2);
     filter.Q.value = 0.28;
     output.gain.setValueAtTime(0.0001, start);
     output.gain.linearRampToValueAtTime(velocity, start + 1.05);
@@ -313,9 +313,9 @@ export class MusicEngine {
     output.connect(destination);
 
     for (const [type, ratio, level, detune] of [
-      ["sawtooth", 1, 0.16, -5],
-      ["triangle", 1.002, 0.58, 4],
-      ["sine", 2, 0.08, 0]
+      ["sawtooth", 1, 0.07, -5],
+      ["triangle", 1.002, 0.48, 4],
+      ["sine", 2, 0.045, 0]
     ] as const) {
       const oscillator = this.track(context.createOscillator());
       const partialGain = this.track(context.createGain());
