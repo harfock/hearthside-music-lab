@@ -3,9 +3,8 @@ export type NoteEvent = {
   duration: number;
   midi: number;
   velocity: number;
-  // Small, authored timing deviations create a gentle human breath.
   timingOffset?: number;
-  voice: "piano" | "bell" | "pad";
+  voice: "pluck" | "pad" | "bass" | "bell";
 };
 
 export type Composition = {
@@ -17,219 +16,133 @@ export type Composition = {
   events: NoteEvent[];
 };
 
-type ChordBar = {
+type Chord = {
   bass: number;
-  arpeggio: readonly [number, number, number];
-  pad: readonly [number, number];
+  pad: readonly [number, number, number];
+  plucks: readonly [number, number, number, number];
+  name: string;
 };
 
-// The harmony and every melodic note are written explicitly.
-// Each bar is three quarter-note beats: a gentle, lilting waltz.
-const harmony: ChordBar[] = [
-  { bass: 50, arpeggio: [66, 69, 76], pad: [62, 69] }, // Dadd9
-  { bass: 49, arpeggio: [64, 69, 76], pad: [61, 69] }, // A/C#
-  { bass: 47, arpeggio: [62, 66, 73], pad: [59, 66] }, // Bm7
-  { bass: 43, arpeggio: [59, 62, 66], pad: [59, 66] }, // Gmaj7
-  { bass: 42, arpeggio: [62, 66, 74], pad: [57, 66] }, // D/F#
-  { bass: 40, arpeggio: [59, 62, 71], pad: [55, 64] }, // Em7
-  { bass: 45, arpeggio: [62, 64, 71], pad: [57, 64] }, // Asus4
-  { bass: 45, arpeggio: [61, 64, 69], pad: [55, 64] }, // A7
-  { bass: 47, arpeggio: [62, 66, 73], pad: [59, 66] }, // Bm7
-  { bass: 45, arpeggio: [61, 66, 73], pad: [57, 66] }, // F#m/A
-  { bass: 43, arpeggio: [62, 66, 69], pad: [59, 69] }, // Gmaj9
-  { bass: 42, arpeggio: [62, 66, 74], pad: [57, 66] }, // D/F#
-  { bass: 40, arpeggio: [62, 67, 74], pad: [59, 67] }, // Em9
-  { bass: 45, arpeggio: [62, 67, 74], pad: [59, 67] }, // G/A
-  { bass: 45, arpeggio: [61, 64, 71], pad: [55, 64] }, // A7
-  { bass: 50, arpeggio: [66, 69, 76], pad: [62, 69] }  // Dadd9
+// A slow, open D-major progression with shared tones and gentle bass motion.
+const harmony: readonly Chord[] = [
+  { name: "Dmaj9", bass: 38, pad: [62, 66, 69], plucks: [69, 74, 76, 81] },
+  { name: "A/C#", bass: 37, pad: [61, 64, 69], plucks: [69, 73, 76, 81] },
+  { name: "Bm7", bass: 35, pad: [59, 62, 66], plucks: [66, 71, 74, 78] },
+  { name: "Gmaj9", bass: 31, pad: [59, 62, 66], plucks: [67, 71, 74, 78] },
+  { name: "D/F#", bass: 30, pad: [57, 62, 66], plucks: [66, 69, 74, 78] },
+  { name: "Em9", bass: 28, pad: [55, 59, 64], plucks: [64, 69, 71, 76] },
+  { name: "Gmaj7", bass: 31, pad: [55, 59, 62], plucks: [67, 71, 74, 78] },
+  { name: "Asus4", bass: 33, pad: [57, 61, 64], plucks: [69, 73, 76, 81] }
 ];
 
-type MelodyNote = readonly [
-  beat: number,
-  midi: number,
-  duration: number,
-  velocity: number,
-  timingOffset: number
+type PhraseNote = readonly [beat: number, midi: number, duration: number, velocity: number];
+
+// An eight-bar motif: spacious, mostly stepwise, and deliberately unresolved
+// until the final bar. It is varied by arrangement, never randomised.
+const motif: readonly (readonly PhraseNote[])[] = [
+  [[0.5, 81, 1.35, 0.15], [2.65, 78, 0.85, 0.12]],
+  [[1.0, 76, 1.8, 0.13]],
+  [[0.5, 78, 1.2, 0.14], [2.55, 81, 0.95, 0.12]],
+  [[1.25, 83, 1.9, 0.15]],
+  [[0.5, 81, 1.25, 0.14], [2.65, 78, 0.8, 0.11]],
+  [[1.0, 76, 1.8, 0.13]],
+  [[0.5, 74, 1.2, 0.13], [2.55, 78, 0.9, 0.11]],
+  [[0.75, 81, 2.45, 0.15]]
 ];
 
-// Four related phrases: the opening theme, a lifted variation, a wider
-// middle passage, and a quiet return to the home key.
-const melody: readonly MelodyNote[][] = [
-  // Phrase I — a small rising question, then a warm answer.
-  [
-    [0, 78, 0.72, 0.30, 0],
-    [0.75, 81, 0.45, 0.25, 0.015],
-    [1.5, 86, 1.15, 0.34, 0.025]
-  ],
-  [
-    [0, 85, 0.72, 0.30, -0.01],
-    [0.75, 81, 0.48, 0.25, 0],
-    [1.5, 76, 1.2, 0.29, 0.02]
-  ],
-  [
-    [0, 78, 0.55, 0.27, 0],
-    [0.75, 81, 0.55, 0.28, 0.012],
-    [1.5, 83, 0.75, 0.31, 0.025],
-    [2.25, 81, 0.5, 0.22, -0.01]
-  ],
-  [
-    [0, 79, 0.75, 0.28, 0],
-    [0.75, 78, 0.5, 0.24, 0.015],
-    [1.5, 74, 0.75, 0.26, 0.025],
-    [2.25, 71, 0.55, 0.21, -0.01]
-  ],
+const events: NoteEvent[] = [];
+const bars = 48;
 
-  // Phrase II — the same musical thought opens into a brighter register.
-  [
-    [0, 81, 0.65, 0.29, 0],
-    [0.75, 86, 0.55, 0.32, 0.015],
-    [1.5, 88, 0.9, 0.34, 0.025],
-    [2.5, 86, 0.4, 0.22, -0.012]
-  ],
-  [
-    [0, 83, 0.7, 0.29, 0],
-    [0.75, 79, 0.5, 0.24, 0.015],
-    [1.5, 78, 0.75, 0.26, 0.02],
-    [2.25, 76, 0.55, 0.22, -0.012]
-  ],
-  [
-    [0, 76, 0.55, 0.23, 0],
-    [0.75, 81, 0.55, 0.26, 0.02],
-    [1.5, 85, 0.8, 0.31, 0.025],
-    [2.25, 83, 0.5, 0.23, -0.01]
-  ],
-  [
-    [0, 81, 0.7, 0.28, 0],
-    [0.75, 79, 0.5, 0.24, 0.015],
-    [1.5, 76, 0.75, 0.25, 0.02],
-    [2.25, 73, 0.55, 0.21, -0.015]
-  ],
+for (let bar = 0; bar < bars; bar += 1) {
+  const cycle = Math.floor(bar / 8);
+  const phraseBar = bar % 8;
+  const chord = harmony[phraseBar];
+  const start = bar * 4;
+  const isOpening = cycle === 0;
+  const isMiddle = cycle === 2 || cycle === 4;
+  const isOutro = cycle === 5;
 
-  // Phrase III — a more open, gently rising middle passage.
-  [
-    [0, 78, 0.7, 0.27, 0],
-    [0.75, 83, 0.5, 0.25, 0.015],
-    [1.5, 86, 0.85, 0.33, 0.025],
-    [2.25, 85, 0.5, 0.23, -0.01]
-  ],
-  [
-    [0, 81, 0.55, 0.26, 0],
-    [0.75, 85, 0.55, 0.29, 0.015],
-    [1.5, 88, 0.9, 0.34, 0.025],
-    [2.5, 85, 0.4, 0.23, -0.01]
-  ],
-  [
-    [0, 83, 0.7, 0.29, 0],
-    [0.75, 81, 0.5, 0.25, 0.015],
-    [1.5, 79, 0.8, 0.29, 0.02],
-    [2.35, 74, 0.48, 0.21, -0.01]
-  ],
-  [
-    [0, 78, 0.7, 0.27, 0],
-    [0.75, 81, 0.5, 0.26, 0.015],
-    [1.5, 86, 0.75, 0.34, 0.025],
-    [2.25, 90, 0.55, 0.31, 0.02]
-  ],
-
-  // Phrase IV — the theme returns, then settles into a long D-major ending.
-  [
-    [0, 88, 0.65, 0.30, 0],
-    [0.75, 86, 0.5, 0.26, 0.015],
-    [1.5, 83, 0.75, 0.28, 0.02],
-    [2.25, 79, 0.55, 0.23, -0.01]
-  ],
-  [
-    [0, 81, 0.68, 0.26, 0],
-    [0.75, 83, 0.5, 0.26, 0.015],
-    [1.5, 86, 0.9, 0.33, 0.025],
-    [2.5, 83, 0.4, 0.22, -0.01]
-  ],
-  [
-    [0, 81, 0.65, 0.28, 0],
-    [0.75, 78, 0.55, 0.24, 0.015],
-    [1.5, 76, 0.75, 0.26, 0.02],
-    [2.25, 73, 0.55, 0.21, -0.01]
-  ],
-  [
-    [0, 74, 0.75, 0.29, 0],
-    [0.75, 78, 0.5, 0.25, 0.015],
-    [1.5, 81, 0.75, 0.28, 0.02],
-    [2.25, 86, 1.25, 0.32, 0.025]
-  ]
-];
-
-const accompaniment: NoteEvent[] = harmony.flatMap((chord, bar) => {
-  const start = bar * 3;
-  const [first, second, third] = chord.arpeggio;
-  const upperPattern: readonly number[] =
-    bar % 4 === 3 ? [third, first, second] : [second, third, first];
-
-  return [
-    {
+  // Slow, overlapping harmonic bed. The last phrase thins towards the end.
+  chord.pad.forEach((midi, index) => {
+    events.push({
       beat: start,
-      duration: 0.72,
+      duration: 4.15,
+      midi: midi + (cycle === 4 && index === 2 ? 12 : 0),
+      velocity: (isOpening ? 0.026 : 0.034) * (isOutro ? 0.72 : 1),
+      voice: "pad"
+    });
+  });
+
+  // Soft bass anchors every other bar, with a little more movement in the middle.
+  if (phraseBar % 2 === 0 || isMiddle) {
+    events.push({
+      beat: start,
+      duration: 3.65,
       midi: chord.bass,
-      velocity: bar % 4 === 0 ? 0.18 : 0.155,
-      voice: "piano"
-    },
-    ...upperPattern.map((midi, index) => ({
-      beat: start + [0.52, 1.5, 2.48][index],
-      duration: 0.44,
-      midi,
-      velocity: [0.105, 0.12, 0.095][index],
-      timingOffset: index === 2 ? -0.008 : 0,
-      voice: "piano" as const
-    }))
-  ];
-});
+      velocity: isOpening ? 0.105 : 0.13,
+      voice: "bass"
+    });
+  }
 
-const melodyEvents: NoteEvent[] = melody.flatMap((barNotes, bar) =>
-  barNotes.map(([beat, midi, duration, velocity, timingOffset]) => ({
-    beat: bar * 3 + beat,
-    duration,
-    midi,
-    velocity,
-    timingOffset,
-    voice: "piano" as const
-  }))
-);
+  // Sparse broken-chord notes create a quiet sense of motion without a beat.
+  if (phraseBar % 2 === 0 || isMiddle) {
+    const order = phraseBar % 4 === 0 ? [0, 2, 1] : [1, 3, 2];
+    order.forEach((toneIndex, index) => {
+      if (isOutro && phraseBar > 3 && index === 2) return;
+      events.push({
+        beat: start + [0.55, 2.0, 3.15][index],
+        duration: [1.25, 1.05, 1.45][index],
+        midi: chord.plucks[toneIndex],
+        velocity: [0.075, 0.062, 0.052][index] * (isOpening ? 0.78 : 1),
+        timingOffset: [0.012, -0.018, 0.02][index],
+        voice: "pluck"
+      });
+    });
+  }
 
-// Bell notes answer only at phrase edges, leaving the melody room to breathe.
-const bellNotes: readonly (readonly [number, number, number, number])[] = [
-  [1, 2.52, 93, 0.075],
-  [3, 2.58, 95, 0.08],
-  [5, 2.52, 98, 0.085],
-  [7, 2.58, 93, 0.07],
-  [9, 2.52, 98, 0.08],
-  [11, 2.58, 100, 0.075],
-  [13, 2.52, 93, 0.07],
-  [15, 2.7, 98, 0.085]
-];
+  // The recurring motif changes register and density across the six sections.
+  const phrase = motif[phraseBar];
+  phrase.forEach(([beat, midi, duration, velocity], noteIndex) => {
+    if (cycle === 3 && phraseBar % 2 === 1) return;
+    const octaveLift = (cycle === 2 && noteIndex === 0) || cycle === 4 ? 12 : 0;
+    const closingDrop = isOutro && phraseBar >= 5 ? -12 : 0;
+    events.push({
+      beat: start + beat,
+      duration: duration * (isOutro ? 1.18 : 1),
+      midi: midi + octaveLift + closingDrop,
+      velocity: velocity * (isOpening ? 0.72 : isMiddle ? 1.08 : 0.92),
+      timingOffset: noteIndex === 1 ? 0.018 : -0.012,
+      voice: "pluck"
+    });
+  });
 
-const bells: NoteEvent[] = bellNotes.map(([bar, beat, midi, velocity]) => ({
-  beat: bar * 3 + beat,
-  duration: 1.45,
-  midi,
-  velocity,
-  timingOffset: 0.018,
-  voice: "bell"
-}));
+  // Occasional high glass tones, reserved for phrase transitions.
+  if ((phraseBar === 3 || phraseBar === 7) && cycle > 0 && cycle < 5) {
+    events.push({
+      beat: start + (phraseBar === 7 ? 3.25 : 3.45),
+      duration: 2.6,
+      midi: phraseBar === 7 ? 93 : 90,
+      velocity: cycle === 2 || cycle === 4 ? 0.052 : 0.035,
+      timingOffset: 0.025,
+      voice: "bell"
+    });
+  }
+}
 
-const pads: NoteEvent[] = harmony.flatMap((chord, bar) =>
-  chord.pad.map((midi, index) => ({
-    beat: bar * 3,
-    duration: 3.15,
-    midi,
-    velocity: index === 0 ? 0.028 : 0.021,
-    voice: "pad" as const
-  }))
+// A final, long D-major sonority lets the ambience settle naturally.
+events.push(
+  { beat: bars * 4, duration: 7.5, midi: 62, velocity: 0.035, voice: "pad" },
+  { beat: bars * 4, duration: 7.5, midi: 66, velocity: 0.028, voice: "pad" },
+  { beat: bars * 4, duration: 7.5, midi: 69, velocity: 0.024, voice: "pad" },
+  { beat: bars * 4, duration: 6.8, midi: 38, velocity: 0.075, voice: "bass" },
+  { beat: bars * 4 + 0.6, duration: 4.2, midi: 74, velocity: 0.09, voice: "pluck" }
 );
 
 export const firstComposition: Composition = {
-  title: "Lanterns Over the Hills",
-  subtitle: "Original 16-bar waltz · D major · 3/4 · Dadd9 – A/C# – Bm7 – Gmaj7",
-  bpm: 86,
-  beatsPerBar: 3,
-  bars: 16,
-  events: [...accompaniment, ...melodyEvents, ...bells, ...pads]
+  title: "Dreamcatcher — A Quiet Place",
+  subtitle: "Original ambient composition · D major · 4/4 · Dmaj9 – A/C# – Bm7 – Gmaj9",
+  bpm: 72,
+  beatsPerBar: 4,
+  bars,
+  events
 };
