@@ -174,43 +174,41 @@ export class MusicEngine {
     const output = this.track(context.createGain());
     const tone = this.track(context.createBiquadFilter());
     tone.type = "lowpass";
-    tone.frequency.setValueAtTime(Math.min(9000, frequency * 16), start);
-    tone.frequency.setTargetAtTime(Math.max(1100, frequency * 4.2), start + 0.045, 0.38);
-    output.gain.value = 0.82;
+    tone.frequency.setValueAtTime(Math.min(12000, frequency * 16), start);
+    tone.frequency.setTargetAtTime(Math.max(1900, frequency * 7.5), start + 0.035, 0.48);
+    output.gain.value = 0.76;
     tone.connect(output);
     output.connect(destination);
 
-    // Slightly inharmonic partials give the struck string a more piano-like colour.
+    // Bright, inharmonic struck-string partials give the keys a delicate
+    // music-box character while retaining a soft wooden attack.
     const partials = [
-      { harmonic: 1, level: 1, decay: 0.85 },
-      { harmonic: 2, level: 0.31, decay: 0.62 },
-      { harmonic: 3, level: 0.115, decay: 0.48 },
-      { harmonic: 4, level: 0.043, decay: 0.36 },
-      { harmonic: 5, level: 0.016, decay: 0.28 }
+      { harmonic: 1, level: 1, decay: 0.52 },
+      { harmonic: 2, level: 0.32, decay: 0.35 },
+      { harmonic: 3, level: 0.14, decay: 0.25 },
+      { harmonic: 4, level: 0.06, decay: 0.18 },
+      { harmonic: 5, level: 0.025, decay: 0.13 },
+      { harmonic: 6, level: 0.01, decay: 0.095 }
     ];
 
     partials.forEach((partial, index) => {
       const oscillator = this.track(context.createOscillator());
       const partialGain = this.track(context.createGain());
-      const inharmonicity = 0.00012;
+      const inharmonicity = 0.00032;
       const harmonic = partial.harmonic;
       oscillator.type = "sine";
       oscillator.frequency.value =
         frequency * harmonic * Math.sqrt(1 + inharmonicity * harmonic * harmonic);
 
-      const peak = velocity * partial.level * partial.decay;
+      const peak = velocity * partial.level * partial.decay ** 0.12;
       partialGain.gain.setValueAtTime(0.0001, start);
-      partialGain.gain.linearRampToValueAtTime(peak, start + 0.005 + index * 0.001);
-      partialGain.gain.setTargetAtTime(
-        0.0001,
-        start + Math.max(0.12, duration * 0.58),
-        0.22 + index * 0.055
-      );
+      partialGain.gain.linearRampToValueAtTime(peak, start + 0.004 + index * 0.0007);
+      partialGain.gain.setTargetAtTime(0.0001, start + 0.035, partial.decay);
 
       oscillator.connect(partialGain);
       partialGain.connect(tone);
       oscillator.start(start);
-      oscillator.stop(start + duration + 1.6);
+      oscillator.stop(start + Math.max(duration, 0.2) + 2.1);
       this.scheduled.push(oscillator);
     });
   }

@@ -19,8 +19,8 @@ app.innerHTML = `
 
     <section class="intro">
       <p class="eyebrow">COMPOSITION WORKSPACE / 001</p>
-      <h1>Music, written<br><em>with intention.</em></h1>
-      <p class="intro-copy">A small laboratory for original compositions, deliberate harmony and carefully shaped browser instruments.</p>
+      <h1>A little wonder,<br><em>held in a music box.</em></h1>
+      <p class="intro-copy">An original, gently lilting waltz: a singing melody, rolling accompaniment and a little light in the distance.</p>
     </section>
 
     <section class="studio">
@@ -30,21 +30,21 @@ app.innerHTML = `
           <h2>${firstComposition.title}</h2>
           <p class="score-meta">${firstComposition.subtitle}</p>
         </div>
-        <span class="study-number">NO. 01</span>
+        <span class="study-number">NO. 02</span>
       </div>
 
       <div class="score-card">
-        <div class="score-topline"><span>ARRANGEMENT</span><span>4 BARS / ${firstComposition.bpm} BPM</span></div>
-        <div class="staff" aria-label="Four-bar composition overview">
-          <div class="bar"><span class="chord">Cmaj9</span><span class="note n1">●</span><span class="note n2">●</span><span class="note n3">●</span><span class="note n4">●</span></div>
-          <div class="bar"><span class="chord">Am7</span><span class="note n2">●</span><span class="note n4">●</span><span class="note n5">●</span></div>
-          <div class="bar"><span class="chord">Fmaj7</span><span class="note n1">●</span><span class="note n3">●</span><span class="note n5">●</span></div>
-          <div class="bar"><span class="chord">G6 → C</span><span class="note n2">●</span><span class="note n3">●</span><span class="note n4">●</span></div>
+        <div class="score-topline"><span>FOUR-PHRASE WALTZ</span><span>16 BARS / ${firstComposition.bpm} BPM · 3/4</span></div>
+        <div class="staff" aria-label="Four sections across the sixteen-bar composition">
+          <div class="bar"><span class="chord">I · THEME</span><span class="note n1">●</span><span class="note n2">●</span><span class="note n3">●</span><span class="note n4">●</span></div>
+          <div class="bar"><span class="chord">II · LIFT</span><span class="note n2">●</span><span class="note n4">●</span><span class="note n5">●</span></div>
+          <div class="bar"><span class="chord">III · FLIGHT</span><span class="note n1">●</span><span class="note n3">●</span><span class="note n5">●</span></div>
+          <div class="bar"><span class="chord">IV · HOME</span><span class="note n2">●</span><span class="note n3">●</span><span class="note n4">●</span></div>
         </div>
         <div class="tracks">
-          <div><span class="track-dot piano"></span><span>Felt-inspired piano</span><small>MELODY + HARMONY</small></div>
-          <div><span class="track-dot bell"></span><span>Soft bell</span><small>SPARSE ACCENTS</small></div>
-          <div><span class="track-dot pad"></span><span>Warm pad</span><small>HARMONIC BED</small></div>
+          <div><span class="track-dot piano"></span><span>Music-box keys</span><small>MELODY + ROLLING ARPEGGIOS</small></div>
+          <div><span class="track-dot bell"></span><span>Glass bells</span><small>SPARSE PHRASE ANSWERS</small></div>
+          <div><span class="track-dot pad"></span><span>Airy strings</span><small>SLOW HARMONIC GLOW</small></div>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ app.innerHTML = `
         <button class="stop-button" id="stop" type="button" disabled>Stop</button>
         <div class="player-status" id="status" role="status">Ready when you are</div>
       </div>
-      <p class="listening-note">Listen for the chord movement, melody phrasing and how the three instrument layers support one another. This is a first sound-design study, not a finished instrument emulation.</p>
+      <p class="listening-note">Listen for the waltz pulse, the melody returning in a new shape, the wider middle phrase, and the final note settling gently back into D major. All three parts are synthesised locally from the written score.</p>
     </section>
 
     <footer><span>HEARTHSIDE MUSIC LAB</span><span>ORIGINAL SCORE · SYNTHESISED LOCALLY</span></footer>
@@ -74,7 +74,7 @@ playButton.addEventListener("click", async () => {
       status.textContent = "Composition finished";
     });
     stopButton.disabled = false;
-    status.textContent = "Playing · A Quiet Welcome";
+    status.textContent = "Playing · Lanterns Over the Hills";
   } catch (error) {
     playButton.disabled = false;
     status.textContent = error instanceof Error ? error.message : "Audio could not start";
