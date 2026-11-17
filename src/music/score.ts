@@ -78,10 +78,9 @@ const pads: NoteEvent[] = [
 export const firstComposition: Composition = {
   title: "A Quiet Welcome",
   subtitle: "Original four-bar study · C major · 4/4 · Cmaj9 – Am7 – Fmaj7 – G6",
-  bpm:  sixtyEight,
+  bpm: 68,
   beatsPerBar: 4,
   bars: 4,
   events: [...piano, ...bells, ...pads]
 };
 
-const sixtyEight = 68;
