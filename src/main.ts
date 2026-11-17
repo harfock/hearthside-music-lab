@@ -18,9 +18,9 @@ app.innerHTML = `
     </header>
 
     <section class="intro">
-      <p class="eyebrow">COMPOSITION WORKSPACE / 001</p>
-      <h1>A little wonder,<br><em>held in a music box.</em></h1>
-      <p class="intro-copy">An original, gently lilting waltz: a singing melody, rolling accompaniment and a little light in the distance.</p>
+      <p class="eyebrow">COMPOSITION WORKSPACE / 003</p>
+      <h1>Somewhere quiet,<br><em>between the stars.</em></h1>
+      <p class="intro-copy">An original ambient soundscape: slowly changing harmony, a delicate plucked motif and warm layers that drift in and out of focus.</p>
     </section>
 
     <section class="studio">
@@ -30,21 +30,21 @@ app.innerHTML = `
           <h2>${firstComposition.title}</h2>
           <p class="score-meta">${firstComposition.subtitle}</p>
         </div>
-        <span class="study-number">NO. 02</span>
+        <span class="study-number">NO. 03</span>
       </div>
 
       <div class="score-card">
-        <div class="score-topline"><span>FOUR-PHRASE WALTZ</span><span>16 BARS / ${firstComposition.bpm} BPM · 3/4</span></div>
-        <div class="staff" aria-label="Four sections across the sixteen-bar composition">
-          <div class="bar"><span class="chord">I · THEME</span><span class="note n1">●</span><span class="note n2">●</span><span class="note n3">●</span><span class="note n4">●</span></div>
-          <div class="bar"><span class="chord">II · LIFT</span><span class="note n2">●</span><span class="note n4">●</span><span class="note n5">●</span></div>
-          <div class="bar"><span class="chord">III · FLIGHT</span><span class="note n1">●</span><span class="note n3">●</span><span class="note n5">●</span></div>
-          <div class="bar"><span class="chord">IV · HOME</span><span class="note n2">●</span><span class="note n3">●</span><span class="note n4">●</span></div>
+        <div class="score-topline"><span>EVOLVING AMBIENT ARRANGEMENT</span><span>${firstComposition.bars} BARS / ${firstComposition.bpm} BPM · 4/4</span></div>
+        <div class="staff" aria-label="Six evolving sections in the ambient composition">
+          <div class="bar"><span class="chord">I · ARRIVE</span><span class="note n1">●</span><span class="note n3">●</span></div>
+          <div class="bar"><span class="chord">II · DRIFT</span><span class="note n2">●</span><span class="note n4">●</span></div>
+          <div class="bar"><span class="chord">III · OPEN</span><span class="note n1">●</span><span class="note n5">●</span></div>
+          <div class="bar"><span class="chord">IV · BREATHE</span><span class="note n2">●</span><span class="note n3">●</span></div>
         </div>
         <div class="tracks">
-          <div><span class="track-dot piano"></span><span>Music-box keys</span><small>MELODY + ROLLING ARPEGGIOS</small></div>
-          <div><span class="track-dot bell"></span><span>Glass bells</span><small>SPARSE PHRASE ANSWERS</small></div>
-          <div><span class="track-dot pad"></span><span>Airy strings</span><small>SLOW HARMONIC GLOW</small></div>
+          <div><span class="track-dot piano"></span><span>Soft plucked strings</span><small>SPARSE ORIGINAL MOTIF</small></div>
+          <div><span class="track-dot bell"></span><span>Glass harmonics</span><small>OCCASIONAL DISTANT LIGHT</small></div>
+          <div><span class="track-dot pad"></span><span>Warm evolving pads</span><small>LONG, BREATHING CHORDS</small></div>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ app.innerHTML = `
         <button class="stop-button" id="stop" type="button" disabled>Stop</button>
         <div class="player-status" id="status" role="status">Ready when you are</div>
       </div>
-      <p class="listening-note">Listen for the waltz pulse, the melody returning in a new shape, the wider middle phrase, and the final note settling gently back into D major. All three parts are synthesised locally from the written score.</p>
+      <p class="listening-note">A slow 48-bar composition with six evolving sections. Listen for the recurring motif, the gradual opening of the texture, and the final D-major chord fading into the room. Every note and sound is generated locally with Web Audio API.</p>
     </section>
 
     <footer><span>HEARTHSIDE MUSIC LAB</span><span>ORIGINAL SCORE · SYNTHESISED LOCALLY</span></footer>
@@ -74,7 +74,7 @@ playButton.addEventListener("click", async () => {
       status.textContent = "Composition finished";
     });
     stopButton.disabled = false;
-    status.textContent = "Playing · Lanterns Over the Hills";
+    status.textContent = "Playing · Dreamcatcher — A Quiet Place";
   } catch (error) {
     playButton.disabled = false;
     status.textContent = error instanceof Error ? error.message : "Audio could not start";
