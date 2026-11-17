@@ -288,7 +288,8 @@ function softenForReading(score: Composition, bpm: number, melodicVoices: readon
           : originalVoice;
       return {
         ...event,
-        midi: isMelodic ? Math.max(55, Math.min(67, loweredMidi)) : event.midi,
+        voice,
+        midi: isMelodic ? Math.max(55, Math.min(67, loweredMidi)) : loweredMidi,
         duration: isMelodic ? Math.max(3.8, event.duration * 1.45) : event.duration,
         velocity: isMelodic ? event.velocity * 0.62 : event.velocity
       };
