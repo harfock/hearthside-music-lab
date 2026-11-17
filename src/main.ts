@@ -74,7 +74,7 @@ playButton.addEventListener("click", async () => {
       status.textContent = "Composition finished";
     });
     stopButton.disabled = false;
-    status.textContent = "Playing · Dreamcatcher — A Quiet Place";
+    status.textContent = "Playing · A Quiet Place Between Stars";
   } catch (error) {
     playButton.disabled = false;
     status.textContent = error instanceof Error ? error.message : "Audio could not start";
