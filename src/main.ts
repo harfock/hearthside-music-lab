@@ -8,8 +8,8 @@ if (!app) throw new Error("Application root not found");
 const engine = new MusicEngine();
 const compositions = [firstComposition, secondComposition, thirdComposition, fourthComposition];
 const compositionDetails = [
-  { mood: "Ambient · Dreamlike · 54 BPM", label: "EVOLVING AMBIENT ARRANGEMENT", instruments: [["Soft plucked strings", "SPARSE ORIGINAL MOTIF"], ["Glass harmonics", "OCCASIONAL DISTANT LIGHT"], ["Warm evolving pads", "LONG, BREATHING CHORDS"]], note: "A slow ambient composition with a recurring motif, a gradual opening of texture, and a final D-major chord fading into the room." },
-  { mood: "Cinematic · Gentle · 54 BPM", label: "CINEMATIC THEMATIC ARRANGEMENT", instruments: [["Harp-like arpeggios", "GENTLE FORWARD MOTION"], ["Flute-like lead", "ORIGINAL SINGABLE THEME"], ["Warm string ensemble", "GRADUAL ORCHESTRAL BUILD"]], note: "An original cinematic theme with harp-like arpeggios, a flute-like lead and layered strings." },
+  { mood: "Ambient · Dreamlike · 54 BPM", label: "EVOLVING AMBIENT ARRANGEMENT", instruments: [["Soft sustained motif", "NARROW MIDDLE REGISTER"], ["Rounded harmonic tones", "NO BRIGHT CHIMES"], ["Warm evolving pads", "LONG, BREATHING CHORDS"]], note: "A slow ambient composition with a recurring motif, a gradual opening of texture, and a final D-major chord fading into the room." },
+  { mood: "Cinematic · Gentle · 54 BPM", label: "CINEMATIC THEMATIC ARRANGEMENT", instruments: [["Slow chordal figures", "SOFT, UNHURRIED MOTION"], ["Rounded middle-register lead", "NO HIGH REGISTER LEAPS"], ["Warm string cloud", "LONG, BREATHING CHORDS"]], note: "An original cinematic theme with harp-like arpeggios, a flute-like lead and layered strings." },
   { mood: "Singing bowl · Still · 42 BPM", label: "SLOW SINGING-BOWL SOUNDscape", instruments: [["Medium singing bowl", "LONG, SOFT RESONANCE"], ["Warm harmonic bed", "SLOW CHORD CHANGES"], ["Low gentle drone", "QUIET FOUNDATION"]], note: "A restrained reading soundscape: one softly struck medium-register bowl tone every few bars, long resonance, and almost motionless harmony." },
   { mood: "Singing bowl · Spacious · 40 BPM", label: "LAYERED BOWL AND STRING SOUNDscape", instruments: [["Medium singing bowl", "GENTLE, SPACED STRIKES"], ["Soft string cloud", "SLOW SUSTAINED CHORDS"], ["Low gentle drone", "NO RHYTHMIC PULSE"]], note: "A second reading soundscape with more frequent but still widely spaced bowl tones, warm strings, a narrow register and no dramatic build." }
 ];
@@ -63,8 +63,8 @@ app.innerHTML = `
           <div class="bar"><span class="chord">IV · RETURN</span><span class="note n2">●</span><span class="note n3">●</span></div>
         </div>
         <div class="tracks" id="instrument-list">
-          <div><span class="track-dot piano"></span><span>Soft plucked strings</span><small>SPARSE ORIGINAL MOTIF</small></div>
-          <div><span class="track-dot bell"></span><span>Glass harmonics</span><small>OCCASIONAL DISTANT LIGHT</small></div>
+          <div><span class="track-dot piano"></span><span>Soft sustained motif</span><small>NARROW MIDDLE REGISTER</small></div>
+          <div><span class="track-dot bell"></span><span>Rounded harmonic tones</span><small>NO BRIGHT CHIMES</small></div>
           <div><span class="track-dot pad"></span><span>Warm evolving pads</span><small>LONG, BREATHING CHORDS</small></div>
         </div>
       </div>
@@ -74,7 +74,7 @@ app.innerHTML = `
         <button class="stop-button" id="stop" type="button" disabled>Stop</button>
         <div class="player-status" id="status" role="status">Ready when you are</div>
       </div>
-      <p class="listening-note" id="listening-note">A slow 48-bar composition with six evolving sections. Listen for the recurring motif, the gradual opening of the texture, and the final D-major chord fading into the room. Every note and sound is generated locally with Web Audio API.</p>
+      <p class="listening-note" id="listening-note">A softened, slower version of the original ambient theme, with a narrower register, longer notes and no bright chimes. Every note is generated locally with Web Audio API.</p>
     </section>
 
     <footer><span>HEARTHSIDE MUSIC LAB</span><span>ORIGINAL SCORES · SYNTHESISED LOCALLY</span></footer>
