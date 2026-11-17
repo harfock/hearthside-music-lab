@@ -1,14 +1,14 @@
 import type { Composition, NoteEvent } from "../music/score";
 
-type Voice = NoteEvent["voice"];
-
 const midiToHz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
 
 export class MusicEngine {
   private context: AudioContext | null = null;
   private master: GainNode | null = null;
   private scheduled: AudioScheduledSourceNode[] = [];
+  private graphNodes: AudioNode[] = [];
   private stopTimer: number | null = null;
+  private cleanupTimer: number | null = null;
   private playing = false;
 
   get isPlaying() {
@@ -17,49 +17,72 @@ export class MusicEngine {
 
   async play(score: Composition, onEnded: () => void) {
     this.stop();
-    const AudioContextClass = window.AudioContext;
-    this.context ??= new AudioContextClass();
+    this.context ??= new AudioContext();
     await this.context.resume();
 
     const context = this.context;
-    const master = context.createGain();
-    const compressor = context.createDynamicsCompressor();
-    const lowpass = context.createBiquadFilter();
+    const master = this.track(context.createGain());
+    const dry = this.track(context.createGain());
+    const reverbSend = this.track(context.createGain());
+    const wet = this.track(context.createGain());
+    const lowpass = this.track(context.createBiquadFilter());
+    const compressor = this.track(context.createDynamicsCompressor());
+
+    master.gain.value = 0.78;
+    dry.gain.value = 0.88;
+    reverbSend.gain.value = 0.22;
+    wet.gain.value = 0.19;
     lowpass.type = "lowpass";
     lowpass.frequency.value = 10500;
     lowpass.Q.value = 0.35;
-    master.gain.value = 0.72;
     compressor.threshold.value = -18;
     compressor.knee.value = 18;
     compressor.ratio.value = 2;
     compressor.attack.value = 0.015;
-    compressor.release.value = 0.25;
-    master.connect(lowpass);
+    compressor.release.value = 0.28;
+
+    master.connect(dry);
+    dry.connect(lowpass);
+    master.connect(reverbSend);
+    this.createRoomReverb(reverbSend, wet, context);
+    wet.connect(lowpass);
     lowpass.connect(compressor);
     compressor.connect(context.destination);
     this.master = master;
 
     const startAt = context.currentTime + 0.08;
     const secondsPerBeat = 60 / score.bpm;
-    const totalDuration = score.bars * score.beatsPerBar * secondsPerBeat;
+    const lastEventBeat = score.events.reduce(
+      (last, event) => Math.max(last, event.beat + event.duration),
+      score.bars * score.beatsPerBar
+    );
 
     for (const event of score.events) {
-      this.scheduleVoice(event, startAt + event.beat * secondsPerBeat, event.duration * secondsPerBeat, context, master);
+      this.scheduleVoice(
+        event,
+        startAt + event.beat * secondsPerBeat,
+        event.duration * secondsPerBeat,
+        context,
+        master
+      );
     }
 
     this.playing = true;
     this.stopTimer = window.setTimeout(() => {
       this.playing = false;
       this.scheduled = [];
+      this.master = null;
       onEnded();
-    }, (totalDuration + 2.2) * 1000);
+      this.releaseGraph(2800);
+    }, (lastEventBeat * secondsPerBeat + 2.8) * 1000);
   }
 
   stop() {
-    if (this.stopTimer !== null) {
-      window.clearTimeout(this.stopTimer);
-      this.stopTimer = null;
-    }
+    if (this.stopTimer !== null) window.clearTimeout(this.stopTimer);
+    if (this.cleanupTimer !== null) window.clearTimeout(this.cleanupTimer);
+    this.stopTimer = null;
+    this.cleanupTimer = null;
+
     const now = this.context?.currentTime ?? 0;
     for (const source of this.scheduled) {
       try {
@@ -69,14 +92,61 @@ export class MusicEngine {
       }
     }
     this.scheduled = [];
+
     if (this.master && this.context) {
       this.master.gain.cancelScheduledValues(now);
       this.master.gain.setTargetAtTime(0, now, 0.035);
-      const oldMaster = this.master;
-      window.setTimeout(() => oldMaster.disconnect(), 250);
-      this.master = null;
     }
+    this.master = null;
     this.playing = false;
+    this.releaseGraph(260);
+  }
+
+  private track<T extends AudioNode>(node: T): T {
+    this.graphNodes.push(node);
+    return node;
+  }
+
+  private releaseGraph(delay: number) {
+    const nodes = this.graphNodes;
+    this.graphNodes = [];
+    if (!nodes.length) return;
+
+    this.cleanupTimer = window.setTimeout(() => {
+      for (const node of nodes) {
+        try {
+          node.disconnect();
+        } catch {
+          // Nodes may already be disconnected.
+        }
+      }
+      this.cleanupTimer = null;
+    }, delay);
+  }
+
+  private createRoomReverb(input: AudioNode, output: AudioNode, context: AudioContext) {
+    const delayTimes = [0.0297, 0.0371, 0.0411, 0.0437];
+    const feedbackLevels = [0.69, 0.67, 0.65, 0.63];
+
+    delayTimes.forEach((delayTime, index) => {
+      const delay = this.track(context.createDelay(0.12));
+      const damping = this.track(context.createBiquadFilter());
+      const feedback = this.track(context.createGain());
+      const returnGain = this.track(context.createGain());
+
+      delay.delayTime.value = delayTime;
+      damping.type = "lowpass";
+      damping.frequency.value = 4200 - index * 420;
+      feedback.gain.value = feedbackLevels[index];
+      returnGain.gain.value = 0.24;
+
+      input.connect(delay);
+      delay.connect(damping);
+      damping.connect(feedback);
+      feedback.connect(delay);
+      delay.connect(returnGain);
+      returnGain.connect(output);
+    });
   }
 
   private scheduleVoice(
@@ -87,86 +157,122 @@ export class MusicEngine {
     destination: AudioNode
   ) {
     const frequency = midiToHz(event.midi);
-    const voice = event.voice as Voice;
-    if (voice === "piano") this.schedulePiano(frequency, event.velocity, start, duration, context, destination);
-    if (voice === "bell") this.scheduleBell(frequency, event.velocity, start, duration, context, destination);
-    if (voice === "pad") this.schedulePad(frequency, event.velocity, start, duration, context, destination);
-  }
-
-  private schedulePiano(frequency: number, velocity: number, start: number, duration: number, context: AudioContext, destination: AudioNode) {
-    const output = context.createGain();
-    const tone = context.createBiquadFilter();
-    tone.type = "lowpass";
-    tone.frequency.setValueAtTime(Math.min(6200, frequency * 13), start);
-    tone.frequency.exponentialRampToValueAtTime(Math.max(900, frequency * 3.5), start + Math.min(0.35, duration));
-    output.gain.setValueAtTime(0.0001, start);
-    output.gain.linearRampToValueAtTime(velocity, start + 0.012);
-    output.gain.exponentialRampToValueAtTime(Math.max(0.0002, velocity * 0.24), start + Math.min(0.45, duration * 0.55));
-    output.gain.setTargetAtTime(0.0001, start + Math.min(0.5, duration * 0.6), Math.max(0.12, duration * 0.55));
-    tone.connect(output);
-    output.connect(destination);
-
-    const partials = [
-      { ratio: 1, gain: 1 },
-      { ratio: 2.001, gain: 0.24 },
-      { ratio: 3.009, gain: 0.075 },
-      { ratio: 4.02, gain: 0.025 }
-    ];
-    for (const partial of partials) {
-      const oscillator = context.createOscillator();
-      const partialGain = context.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.value = frequency * partial.ratio;
-      partialGain.gain.value = partial.gain;
-      oscillator.connect(partialGain);
-      partialGain.connect(tone);
-      oscillator.start(start);
-      oscillator.stop(start + duration + 1.2);
-      this.scheduled.push(oscillator);
+    if (event.voice === "piano") {
+      this.schedulePiano(frequency, event.velocity, start, duration, context, destination);
+    } else if (event.voice === "bell") {
+      this.scheduleBell(frequency, event.velocity, start, duration, context, destination);
+    } else {
+      this.schedulePad(frequency, event.velocity, start, duration, context, destination);
     }
   }
 
-  private scheduleBell(frequency: number, velocity: number, start: number, duration: number, context: AudioContext, destination: AudioNode) {
-    const output = context.createGain();
+  private schedulePiano(
+    frequency: number,
+    velocity: number,
+    start: number,
+    duration: number,
+    context: AudioContext,
+    destination: AudioNode
+  ) {
+    const output = this.track(context.createGain());
+    const tone = this.track(context.createBiquadFilter());
+    tone.type = "lowpass";
+    tone.frequency.setValueAtTime(Math.min(9000, frequency * 16), start);
+    tone.frequency.setTargetAtTime(Math.max(1100, frequency * 4.2), start + 0.045, 0.38);
+    output.gain.value = 0.82;
+    tone.connect(output);
+    output.connect(destination);
+
+    // Slightly inharmonic partials give the struck string a more piano-like colour.
+    const partials = [
+      { harmonic: 1, level: 1, decay: 0.85 },
+      { harmonic: 2, level: 0.31, decay: 0.62 },
+      { harmonic: 3, level: 0.115, decay: 0.48 },
+      { harmonic: 4, level: 0.043, decay: 0.36 },
+      { harmonic: 5, level: 0.016, decay: 0.28 }
+    ];
+
+    partials.forEach((partial, index) => {
+      const oscillator = this.track(context.createOscillator());
+      const partialGain = this.track(context.createGain());
+      const inharmonicity = 0.00012;
+      const harmonic = partial.harmonic;
+      oscillator.type = "sine";
+      oscillator.frequency.value =
+        frequency * harmonic * Math.sqrt(1 + inharmonicity * harmonic * harmonic);
+
+      const peak = velocity * partial.level * partial.decay;
+      partialGain.gain.setValueAtTime(0.0001, start);
+      partialGain.gain.linearRampToValueAtTime(peak, start + 0.005 + index * 0.001);
+      partialGain.gain.setTargetAtTime(
+        0.0001,
+        start + Math.max(0.12, duration * 0.58),
+        0.22 + index * 0.055
+      );
+
+      oscillator.connect(partialGain);
+      partialGain.connect(tone);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 1.6);
+      this.scheduled.push(oscillator);
+    });
+  }
+
+  private scheduleBell(
+    frequency: number,
+    velocity: number,
+    start: number,
+    duration: number,
+    context: AudioContext,
+    destination: AudioNode
+  ) {
+    const output = this.track(context.createGain());
+    const tone = this.track(context.createBiquadFilter());
+    tone.type = "highpass";
+    tone.frequency.value = 520;
     output.gain.setValueAtTime(0.0001, start);
     output.gain.linearRampToValueAtTime(velocity, start + 0.008);
-    output.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.5, duration));
-    const tone = context.createBiquadFilter();
-    tone.type = "highpass";
-    tone.frequency.value = 500;
+    output.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.7, duration * 1.25));
     tone.connect(output);
     output.connect(destination);
 
     for (const [ratio, level] of [[1, 1], [2.756, 0.22], [5.404, 0.07]] as const) {
-      const oscillator = context.createOscillator();
-      const partialGain = context.createGain();
+      const oscillator = this.track(context.createOscillator());
+      const partialGain = this.track(context.createGain());
       oscillator.type = "sine";
       oscillator.frequency.value = frequency * ratio;
       partialGain.gain.value = level;
       oscillator.connect(partialGain);
       partialGain.connect(tone);
       oscillator.start(start);
-      oscillator.stop(start + Math.max(duration, 1.8) + 0.3);
+      oscillator.stop(start + Math.max(duration, 1.8) + 0.5);
       this.scheduled.push(oscillator);
     }
   }
 
-  private schedulePad(frequency: number, velocity: number, start: number, duration: number, context: AudioContext, destination: AudioNode) {
-    const output = context.createGain();
-    const filter = context.createBiquadFilter();
+  private schedulePad(
+    frequency: number,
+    velocity: number,
+    start: number,
+    duration: number,
+    context: AudioContext,
+    destination: AudioNode
+  ) {
+    const output = this.track(context.createGain());
+    const filter = this.track(context.createBiquadFilter());
     filter.type = "lowpass";
     filter.frequency.value = 1450;
     filter.Q.value = 0.5;
     output.gain.setValueAtTime(0.0001, start);
     output.gain.linearRampToValueAtTime(velocity, start + 1.1);
     output.gain.setTargetAtTime(Math.max(0.0001, velocity * 0.72), start + 1.1, 0.8);
-    output.gain.setTargetAtTime(0.0001, start + duration - 0.6, 0.45);
+    output.gain.setTargetAtTime(0.0001, start + Math.max(1.2, duration - 0.6), 0.45);
     filter.connect(output);
     output.connect(destination);
 
     for (const [ratio, level, detune] of [[1, 0.6, -5], [1.003, 0.4, 5]] as const) {
-      const oscillator = context.createOscillator();
-      const partialGain = context.createGain();
+      const oscillator = this.track(context.createOscillator());
+      const partialGain = this.track(context.createGain());
       oscillator.type = "triangle";
       oscillator.frequency.value = frequency * ratio;
       oscillator.detune.value = detune;
@@ -174,7 +280,7 @@ export class MusicEngine {
       oscillator.connect(partialGain);
       partialGain.connect(filter);
       oscillator.start(start);
-      oscillator.stop(start + duration + 1);
+      oscillator.stop(start + duration + 1.2);
       this.scheduled.push(oscillator);
     }
   }
