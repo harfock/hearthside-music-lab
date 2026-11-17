@@ -13,8 +13,7 @@ const compositionDetails = [
   { mood: "Singing bowl · Still · 42 BPM", label: "SLOW SINGING-BOWL SOUNDscape", instruments: [["Medium singing bowl", "LONG, SOFT RESONANCE"], ["Warm harmonic bed", "SLOW CHORD CHANGES"], ["Low gentle drone", "QUIET FOUNDATION"]], note: "A restrained reading soundscape: one softly struck medium-register bowl tone every few bars, long resonance, and almost motionless harmony." },
   { mood: "Singing bowl · Spacious · 40 BPM", label: "LAYERED BOWL AND STRING SOUNDscape", instruments: [["Medium singing bowl", "GENTLE, SPACED STRIKES"], ["Soft string cloud", "SLOW SUSTAINED CHORDS"], ["Low gentle drone", "NO RHYTHMIC PULSE"]], note: "A second reading soundscape with more frequent but still widely spaced bowl tones, warm strings, a narrow register and no dramatic build." }
 ];
-let selectedComposition = compositions[selectedIndex];
-
+let selectedComposition = compositions[0];
 app.innerHTML = `
   <main class="shell">
     <header class="topbar">
