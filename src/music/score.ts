@@ -139,7 +139,7 @@ events.push(
 );
 
 export const firstComposition: Composition = {
-  title: "Dreamcatcher — A Quiet Place",
+  title: "A Quiet Place Between Stars",
   subtitle: "Original ambient composition · D major · 4/4 · Dmaj9 – A/C# – Bm7 – Gmaj9",
   bpm: 72,
   beatsPerBar: 4,
