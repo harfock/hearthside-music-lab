@@ -146,3 +146,129 @@ export const firstComposition: Composition = {
   bars,
   events
 };
+
+
+type CinematicChord = {
+  bass: number;
+  tones: readonly [number, number, number, number];
+  harp: readonly [number, number, number, number];
+};
+
+const cinematicHarmony: readonly CinematicChord[] = [
+  { bass: 43, tones: [55, 59, 62, 69], harp: [67, 71, 74, 79] },
+  { bass: 41, tones: [53, 57, 62, 67], harp: [65, 69, 74, 77] },
+  { bass: 40, tones: [52, 55, 59, 64], harp: [64, 67, 71, 76] },
+  { bass: 36, tones: [48, 55, 60, 64], harp: [60, 64, 67, 72] },
+  { bass: 35, tones: [47, 55, 59, 62], harp: [62, 67, 71, 74] },
+  { bass: 45, tones: [57, 60, 64, 69], harp: [64, 69, 72, 76] },
+  { bass: 48, tones: [60, 64, 67, 71], harp: [67, 72, 76, 79] },
+  { bass: 38, tones: [50, 57, 62, 67], harp: [66, 69, 74, 78] }
+];
+
+type CinematicNote = readonly [beat: number, midi: number, duration: number, velocity: number];
+
+// A newly written eight-bar theme: broad rising arcs, a held summit,
+// then a gentle descent. It is not a transcription of the film melody.
+const skyTheme: readonly (readonly CinematicNote[])[] = [
+  [[0, 74, 1.65, 0.12], [2, 79, 1.7, 0.14], [3.5, 81, 0.45, 0.10]],
+  [[0, 79, 1.3, 0.13], [1.5, 76, 2.1, 0.12]],
+  [[0, 74, 1.2, 0.12], [1.5, 76, 1.2, 0.13], [3, 79, 0.8, 0.14]],
+  [[0, 81, 2.6, 0.15], [3, 79, 0.8, 0.11]],
+  [[0, 78, 1.5, 0.12], [2, 81, 1.7, 0.15]],
+  [[0, 83, 2.7, 0.16], [3, 81, 0.8, 0.12]],
+  [[0, 79, 1.2, 0.13], [1.5, 76, 1.2, 0.12], [3, 74, 0.8, 0.11]],
+  [[0, 76, 1.6, 0.12], [2, 74, 1.7, 0.10]]
+];
+
+const skyEvents: NoteEvent[] = [];
+const skyBars = 48;
+
+for (let bar = 0; bar < skyBars; bar += 1) {
+  const section = Math.floor(bar / 8);
+  const phraseBar = bar % 8;
+  const chord = cinematicHarmony[phraseBar];
+  const start = bar * 4;
+  const opening = section === 0;
+  const climax = section === 3 || section === 4;
+  const ending = section === 5;
+
+  // String ensemble enters quietly, then broadens in the central sections.
+  chord.tones.forEach((midi, index) => {
+    skyEvents.push({
+      beat: start,
+      duration: 4.35,
+      midi: midi + (climax && index === 3 ? 12 : 0),
+      velocity: (opening ? 0.018 : climax ? 0.042 : 0.03) * (ending ? 0.68 : 1),
+      voice: "strings"
+    });
+  });
+
+  // Harp-like broken chords provide forward motion without a drum beat.
+  const harpOrder = phraseBar % 2 === 0 ? [0, 1, 2, 3] : [1, 2, 3, 2];
+  harpOrder.forEach((toneIndex, index) => {
+    if (ending && phraseBar > 4 && index > 1) return;
+    skyEvents.push({
+      beat: start + index * 0.82 + (index % 2 ? 0.035 : 0),
+      duration: 1.05 + (index === 3 ? 0.45 : 0),
+      midi: chord.harp[toneIndex],
+      velocity: [0.055, 0.046, 0.05, 0.04][index] * (opening ? 0.78 : 1),
+      timingOffset: [0.012, -0.01, 0.018, -0.014][index],
+      voice: "pluck"
+    });
+  });
+
+  // The bass enters after the opening phrase and grows towards the summit.
+  if (section > 0 || phraseBar % 2 === 0) {
+    skyEvents.push({
+      beat: start,
+      duration: 3.7,
+      midi: chord.bass,
+      velocity: (climax ? 0.16 : 0.115) * (ending ? 0.65 : 1),
+      voice: "bass"
+    });
+  }
+
+  // The lead theme is stated, lifted an octave, then brought home.
+  skyTheme[phraseBar].forEach(([beat, midi, duration, velocity], noteIndex) => {
+    if (section === 1 && phraseBar % 3 === 1) return;
+    const lift = section === 2 || section === 3 ? 12 : section === 4 && noteIndex === 0 ? 12 : 0;
+    const soften = ending ? -12 : 0;
+    skyEvents.push({
+      beat: start + beat,
+      duration: duration * (ending ? 1.18 : 1),
+      midi: midi + lift + soften,
+      velocity: velocity * (opening ? 0.72 : climax ? 1.12 : ending ? 0.72 : 0.92),
+      timingOffset: noteIndex === 0 ? -0.018 : 0.012,
+      voice: "flute"
+    });
+  });
+
+  // A few high chimes mark the wide-open sections, never every bar.
+  if ((phraseBar === 3 || phraseBar === 7) && (section === 2 || section === 3 || section === 4)) {
+    skyEvents.push({
+      beat: start + 3.35,
+      duration: 2.4,
+      midi: phraseBar === 7 ? 91 : 88,
+      velocity: section === 3 ? 0.042 : 0.026,
+      voice: "bell"
+    });
+  }
+}
+
+// A final open G sonority with the melody resting above it.
+skyEvents.push(
+  { beat: skyBars * 4, duration: 8, midi: 55, velocity: 0.028, voice: "strings" },
+  { beat: skyBars * 4, duration: 8, midi: 59, velocity: 0.026, voice: "strings" },
+  { beat: skyBars * 4, duration: 8, midi: 62, velocity: 0.024, voice: "strings" },
+  { beat: skyBars * 4, duration: 7, midi: 43, velocity: 0.07, voice: "bass" },
+  { beat: skyBars * 4 + 0.5, duration: 4.8, midi: 79, velocity: 0.075, voice: "flute" }
+);
+
+export const secondComposition: Composition = {
+  title: "Where the Sky Opens",
+  subtitle: "Original cinematic theme · G major · 4/4 · Gadd9 – Fmaj7 – Em7 – Cmaj7",
+  bpm: 96,
+  beatsPerBar: 4,
+  bars: skyBars,
+  events: skyEvents
+};
