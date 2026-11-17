@@ -59,7 +59,7 @@ export class MusicEngine {
     for (const event of score.events) {
       this.scheduleVoice(
         event,
-        startAt + event.beat * secondsPerBeat,
+        startAt + (event.beat + (event.timingOffset ?? 0)) * secondsPerBeat,
         event.duration * secondsPerBeat,
         context,
         master
